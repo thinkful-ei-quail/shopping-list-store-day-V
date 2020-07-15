@@ -156,8 +156,11 @@ const handleToggleFilterClick = function () {
 };
 const editModeSave = function (id, e) {
   const foundItem = store.items.find(item => item.id === id);
-  foundItem.name = getTextFromInput(e);
-};
+  if(getTextFromInput(e).length)
+  {
+    foundItem.name = getTextFromInput(e);
+  }
+}
 function getTextFromInput(e)
 {
   let listing = e.currentTarget.closest("li");
