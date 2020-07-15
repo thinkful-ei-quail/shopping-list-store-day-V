@@ -1,19 +1,27 @@
 const store = {
   items: [
-    { id: cuid(), name: 'apples', checked: false },
-    { id: cuid(), name: 'oranges', checked: false },
-    { id: cuid(), name: 'milk', checked: true },
-    { id: cuid(), name: 'bread', checked: false }
+    { id: cuid(), name: 'apples', checked: false, editor:false },
+    { id: cuid(), name: 'oranges', checked: false, editor:true },
+    { id: cuid(), name: 'milk', checked: true, editor:false },
+    { id: cuid(), name: 'bread', checked: false, editor:false }
   ],
   hideCheckedItems: false
 };
 
 const generateItemElement = function (item) {
   let itemTitle = `<span class='shopping-item shopping-item__checked'>${item.name}</span>`;
+  let modBtn = `<button class='shopping-item-edit js-item-edit'> <span class='button-label'>edit</span> </button>`
   if (!item.checked) {
     itemTitle = `
      <span class='shopping-item'>${item.name}</span>
     `;
+  }
+  if(item.editor)
+  {
+    itemTitle = `
+     <input class='shopping-item edit-box' type="text" placeholder="${item.name}"></input>
+    `;
+    modBtn = `<button class='shopping-item-save js-item-save'> <span class='button-label'>save</span> </button>`
   }
 
   return `
@@ -23,6 +31,7 @@ const generateItemElement = function (item) {
         <button class='shopping-item-toggle js-item-toggle'>
           <span class='button-label'>check</span>
         </button>
+        ${modBtn}
         <button class='shopping-item-delete js-item-delete'>
           <span class='button-label'>delete</span>
         </button>
@@ -63,7 +72,7 @@ const render = function () {
 };
 
 const addItemToShoppingList = function (itemName) {
-  store.items.push({ id: cuid(), name: itemName, checked: false });
+  store.items.push({ id: cuid(), name: itemName, checked: false, editor:false });
 };
 
 const handleNewItemSubmit = function () {
@@ -134,6 +143,7 @@ const toggleCheckedItemsFilter = function () {
   store.hideCheckedItems = !store.hideCheckedItems;
 };
 
+
 /**
  * Places an event listener on the checkbox 
  * for hiding completed items.
@@ -141,6 +151,38 @@ const toggleCheckedItemsFilter = function () {
 const handleToggleFilterClick = function () {
   $('.js-filter-checked').click(() => {
     toggleCheckedItemsFilter();
+    render();
+  });
+};
+const editModeSave = function (id, e) {
+  const foundItem = store.items.find(item => item.id === id);
+  foundItem.name = getTextFromInput(e);
+};
+function getTextFromInput(e)
+{
+  let listing = e.currentTarget.closest("li");
+  return $(listing).find("input").val();
+}
+
+const handleSaveClicked = function () {
+  $('.js-shopping-list').on('click', '.js-item-save', event => {
+    const id = getItemIdFromElement(event.currentTarget);
+    
+    editModeSave(id,event);
+    toggleEditorForListItem(id);
+    render();
+  });
+};
+const toggleEditorForListItem = function (id) {
+  const foundItem = store.items.find(item => item.id === id);
+  foundItem.editor = !foundItem.editor;
+};
+
+const handleEditClicked = function () {
+  $('.js-shopping-list').on('click', '.js-item-edit', event => {
+    const id = getItemIdFromElement(event.currentTarget);
+    console.log("edit button")
+    toggleEditorForListItem(id);
     render();
   });
 };
@@ -160,6 +202,8 @@ const handleShoppingList = function () {
   handleItemCheckClicked();
   handleDeleteItemClicked();
   handleToggleFilterClick();
+  handleSaveClicked();
+  handleEditClicked();
 };
 
 // when the page loads, call `handleShoppingList`
